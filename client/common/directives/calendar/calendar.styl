@@ -1,0 +1,58 @@
+#calendar
+  padding-top: 40px
+  & table
+    -webkit-touch-callout none
+    -webkit-user-select none
+    -khtml-user-select none
+    -moz-user-select none
+    -ms-user-select none
+    user-select none
+    &.selecting
+      cursor: pointer
+    & tbody > tr > td
+      width: (100%/7)
+  & .btn-block+.btn-block
+    margin-top 0!important
+.muted
+  color #aaa
+
+.day-unscoped
+  background-color #484e55  //#666
+  & .muted
+    color #aaa
+
+.td-day
+  height 80px
+
+.day-editing
+  position relative
+  border-radius 5px
+  display none
+  height 100%
+  opacity: 0.5
+  &.end
+    display: block!important
+  & i
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%)
+    opacity: 0.5
+
+tbody > tr > td
+  padding 8px
+
+tbody.cal-edit > tr
+  & > td:hover
+    & > .day-editing
+      display block
+      cursor: pointer
+
+.owner-box
+  width 10px
+  height 10px
+  margin-right 5px
+  margin-bottom 5px
+  margin-top 5px
+  float left
+  border 1px solid #484e55

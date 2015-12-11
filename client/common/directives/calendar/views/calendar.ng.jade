@@ -1,0 +1,104 @@
+section#calendar
+  .row.mg-b-10
+    .col-sm-2
+      button.btn.btn-sm(type="button", ng-click="cal.prevMonth()",
+        ng-class="{'btn-primary': !cal.editing,\
+          'btn-warning':cal.editing}")
+        i.fa.fa-chevron-left
+        | &nbsp;Pr&#233;c&#233;dent
+    .col-sm-8
+      .row
+        .col-sm-3.col-sm-offset-3.text-right(ng-show="!cal.selection.selecting.month")
+          span.big.bold(ng-click="cal.selectMonth()") {{cal.month()}}
+        .col-sm-3.col-sm-offset-3.text-right(ng-show="cal.selection.selecting.month")
+          select.form-control.input-sm(ng-change="cal.selectMonth();cal.display()",
+            ng-mouseleave="cal.selectMonth(false)"
+            ng-options="option.format('MMMM') for option in cal.selecta('m') track by option.format('MMYY')",
+            ng-model="cal.date")
+            option(value="{{cal.month()}}")
+        .col-sm-3.text-left(ng-show="!cal.selection.selecting.year")
+          span.big.bold(ng-click="cal.selectYear()") {{cal.year()}}
+        .col-sm-3.text-left(ng-show="cal.selection.selecting.year")
+          select.form-control.input-sm( ng-change="cal.selectYear();cal.display()",
+            ng-options="option.format('YYYY') for option in cal.selecta('y') track by option.valueOf()",
+            ng-mouseleave="cal.selectYear(false)"
+            ng-model="cal.date")
+            option(value="{{cal.year()}}")
+    .col-sm-2
+      button.btn-sm.pull-right.btn.btn-primary(type="button", ng-click="cal.nextMonth()", ng-class="{'btn-primary': !cal.editing, 'btn-warning':cal.editing}")
+        | Suivant&nbsp;
+        i.fa.fa-chevron-right
+  table.table.table-bordered(ng-mouseleave="cal.stopAdd()", ng-class="{selecting: cal.selection.isAdding}")
+    thead
+      tr
+        th(ng-repeat="day in cal.days track by $index") {{day}}
+    tbody(ng-class="{'cal-edit': cal.editing}")
+      tr(ng-repeat="week in cal.weeks track by $index")
+        td.td-day(ng-repeat="day in week track by day.format('DDMMYY')",
+          ng-class="{'day-unscoped': day.unscoped,\
+            success: day.adding && day.canBook && !day.myPrecious,\
+            danger: day.adding && !day.canBook,\
+            info: day.booked,\
+            warning: (day.booked || day.adding) && day.myPrecious }",
+          ng-mouseenter="cal.adding(day)",
+          ng-mouseup="cal.stopAdd()")
+
+          .owner-box( ng-repeat="owner in day.owners",
+            ng-style="{'background-color': owner.color}")
+          //pre.pull-left {{day | json}}
+          span.pull-right.muted {{day.format("DD/MM")}}
+          .text-center.day-editing(ng-mousedown="cal.startAdd(day)",
+            ng-show="day.canBook"
+            ng-class="{end: day.isEnd || day.adding}")
+            i.fa.fa-plus-circle.fa-4x(ng-show="!day.booked && !day.myPrecious", ng-class="{hidden:!day.isEnd && day.adding}")
+            i.fa.fa-minus-circle.fa-4x(ng-show="day.booked || (!day.booked && day.myPrecious)", ng-class="{hidden:!day.isEnd && day.adding}")
+            i.fa.fa-circle.fa-2x(ng-show="day.adding && !day.isEnd")
+
+  #owners
+    ul.list-inline.pull-right
+      li(ng-repeat="(k,v) in cal.owners")
+        span.owner-box(ng-style="{'background-color': v}")
+        |{{k}}
+  .row
+    .col-sm-12
+      .panel.panel-default
+        .panel-body
+          .row
+            .col-sm-4
+              button.btn.btn-block.btn-large.btn-default(ng-click="cal.toggleEdition()", ng-class="{hidden: cal.editing}")
+                i.fa.fa-plus.fa-1x
+                  |&nbsp;Nouvelle réservation
+              div(ng-class="{hidden: !cal.editing}")
+                button.btn.btn-block.btn-large.btn-warning(ng-click="cal.cancelEdition()")
+                  i.fa.fa-ban.fa-1x
+                  |&nbsp;Annuler la sélection
+
+            .col-sm-4
+              div(ng-class="{hidden: !cal.editing}")
+                p.text-muted.text-justify(ng-class="{hidden: cal.selections.length + cal.removables.length > 0}")
+                  i.fa.fa-info
+                  |&nbsp;Cliquez et déplacez pour sélectionner une plage de dates
+                  |Double-cliquez pour sélectionner un jour.
+                strong(ng-show="cal.removables[0]") Suppressions
+                ul.list-unstyled
+                  li(ng-repeat="sel in cal.removables")
+                    span(ng-show="sel.diff == 0") Le {{sel.from.format('DD/MM/YYYY')}}
+                    span(ng-show="sel.diff > 0")
+                      |Du {{sel.from.format('DD/MM/YYYY')}}
+                      |au {{sel.to.format('DD/MM/YYYY')}}
+                strong(ng-show="cal.selections[0]") Ajouts
+                ul.list-unstyled
+                  li(ng-repeat="sel in cal.selections")
+                    span(ng-show="sel.diff == 0") Le {{sel.from.format('DD/MM/YYYY')}}
+                    span(ng-show="sel.diff > 0")
+                      |Du {{sel.from.format('DD/MM/YYYY')}}
+                      |au {{sel.to.format('DD/MM/YYYY')}}
+
+
+            .col-sm-4
+              button.btn.btn-block.btn-large.btn-success(ng-click="cal.confirmSelection()", ng-class="{hidden: !cal.editing || cal.selections.length + cal.removables.length == 0}")
+                i.fa.fa-check-circle.fa-1x
+                |&nbsp;Confirmer la sélection
+
+  pre {{cal.cancelations | json}}
+  pre {{cal.bookings | json}}
