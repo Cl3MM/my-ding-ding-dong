@@ -26,6 +26,7 @@ rzymek:moment-locale-fr
 stevezhu:lodash
 angularui:angular-ui-router
 accounts-password
-dotansimha:accounts-ui-angular
 coffeescript
 rzymek:randomcolor
+kraignos:angular-ui-notification
+carlosbaraza:accounts-ui-bootstrap-3-angular
