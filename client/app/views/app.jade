@@ -1,7 +1,7 @@
 head
   link(href="https://maxcdn.bootstrapcdn.com/bootswatch/latest/slate/bootstrap.min.css", rel="stylesheet")
+  //link(rel="stylesheet", href="angular-ui-notification.min.css")
   base(href="/")
 body(ng-app="huezNg")
   div.container
-    //login-buttons
-    div(ng-include="'client/bookings/views/index.html'")
+    div(ui-view="")

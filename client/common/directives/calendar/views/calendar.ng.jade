@@ -1,30 +1,30 @@
 section#calendar
   .row.mg-b-10
-    .col-sm-2
+    .col-xs-2
       button.btn.btn-sm(type="button", ng-click="cal.prevMonth()",
         ng-class="{'btn-primary': !cal.editing,\
           'btn-warning':cal.editing}")
         i.fa.fa-chevron-left
         | &nbsp;Pr&#233;c&#233;dent
-    .col-sm-8
+    .col-xs-8
       .row
-        .col-sm-3.col-sm-offset-3.text-right(ng-show="!cal.selection.selecting.month")
+        .col-xs-3.col-xs-offset-3.text-right(ng-show="!cal.selection.selecting.month")
           span.big.bold(ng-click="cal.selectMonth()") {{cal.month()}}
-        .col-sm-3.col-sm-offset-3.text-right(ng-show="cal.selection.selecting.month")
+        .col-xs-3.col-xs-offset-3.text-right(ng-show="cal.selection.selecting.month")
           select.form-control.input-sm(ng-change="cal.selectMonth();cal.display()",
             ng-mouseleave="cal.selectMonth(false)"
             ng-options="option.format('MMMM') for option in cal.selecta('m') track by option.format('MMYY')",
             ng-model="cal.date")
             option(value="{{cal.month()}}")
-        .col-sm-3.text-left(ng-show="!cal.selection.selecting.year")
+        .col-xs-3.text-left(ng-show="!cal.selection.selecting.year")
           span.big.bold(ng-click="cal.selectYear()") {{cal.year()}}
-        .col-sm-3.text-left(ng-show="cal.selection.selecting.year")
+        .col-xs-3.text-left(ng-show="cal.selection.selecting.year")
           select.form-control.input-sm( ng-change="cal.selectYear();cal.display()",
             ng-options="option.format('YYYY') for option in cal.selecta('y') track by option.valueOf()",
             ng-mouseleave="cal.selectYear(false)"
             ng-model="cal.date")
             option(value="{{cal.year()}}")
-    .col-sm-2
+    .col-xs-2
       button.btn-sm.pull-right.btn.btn-primary(type="button", ng-click="cal.nextMonth()", ng-class="{'btn-primary': !cal.editing, 'btn-warning':cal.editing}")
         | Suivant&nbsp;
         i.fa.fa-chevron-right

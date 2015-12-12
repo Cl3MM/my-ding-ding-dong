@@ -1,9 +1,5 @@
 Bookings = @Bookings
-console.group "Bookings"
-console.log @Bookings
-console.log Bookings
-console.log window.Bookings
-console.groupEnd()
+
 moment.fn.toJSON = ->
   #o = this.toObject()
   o = {}
@@ -17,12 +13,14 @@ moment.fn.toJSON = ->
   o.unscoped = @unscoped
   o.myPrecious = @myPrecious
   o
-class Calendar
-  constructor: ($scope, $meteor)->
-    console.group "Calendar Controller"
-    console.log $scope
 
-    @ownerId = 2
+class Calendar
+  constructor: ($scope, $reactive, $meteor, @Notification)->
+    $reactive(@).attach $scope
+
+    console.group "Calendar Controller"
+
+    @ownerId = Meteor.user()?._id ? 2
     @date = moment.utc().startOf('d')
     @weeks = []
     @_weeks = []
@@ -34,16 +32,17 @@ class Calendar
       @owners["#{i}"] = randomColor()
 
     @bookings = []
-    @reservations = []
-    $meteor.subscribe('bookings').then (subscription)=>
-      @reservations = $meteor.collection Bookings
-      #@bookings = @reservations.map (b)->
-        #o = moment.utc(b.date)
-        #o.owner = b.owner
-        #o.id = b._id
-        #o
+    #@helpers(
+      #reservations = ->
+        #Bookings.find {}
+    #)
+    #@reservations = @helpers.reservations()
 
-      @display()
+    @reservations = []
+    Meteor.subscribe 'bookings',
+      onReady: (subscription)=>
+        @reservations = $meteor.collection Bookings
+        @display()
 
     labels = moment.weekdays()
     dim = labels.shift()
@@ -158,9 +157,6 @@ class Calendar
       ar.push w if w.booked isnt w.original and w.myPrecious
       ar
     , []
-    console.group "toRemove"
-    console.log @cancelations
-    console.groupEnd()
 
     @selections = @populateSelected @bookings
     @removables = @populateSelected @cancelations
@@ -220,8 +216,9 @@ class Calendar
         b.owners.push {owner: @ownerId, color: @owners[@ownerId], id: b.id }
         @initDay b
         @updateDay b
-      .catch (err)->
+      .catch (err)=>
         console.error err
+        @Notification.error "Une erreur est survenue"
     @cancelations.forEach (c)=>
       id = _.find(c.owners, (o)=> o.owner is @ownerId)?.id
       return unless id
@@ -256,4 +253,4 @@ class Calendar
 
 angular
   .module 'huezNg.common.directives.calendar'
-  .controller 'calendarController', ['$scope', '$meteor', Calendar]
+  .controller 'calendarController', ['$scope', '$reactive', '$meteor', 'Notification', Calendar]
