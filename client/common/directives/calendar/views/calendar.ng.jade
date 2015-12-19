@@ -1,4 +1,6 @@
 section#calendar
+  //pre {{cal.owners|json}}
+  //pre {{cal.reservations | json}}
   .row.mg-b-10
     .col-xs-2
       button.btn.btn-sm(type="button", ng-click="cal.prevMonth()",
@@ -17,7 +19,7 @@ section#calendar
             ng-model="cal.date")
             option(value="{{cal.month()}}")
         .col-xs-3.text-left(ng-show="!cal.selection.selecting.year")
-          span.big.bold(ng-click="cal.selectYear()") {{cal.year()}}
+          span.big.bold.date-link(ng-click="cal.selectYear()") {{cal.year()}}
         .col-xs-3.text-left(ng-show="cal.selection.selecting.year")
           select.form-control.input-sm( ng-change="cal.selectYear();cal.display()",
             ng-options="option.format('YYYY') for option in cal.selecta('y') track by option.valueOf()",
@@ -43,8 +45,8 @@ section#calendar
           ng-mouseenter="cal.adding(day)",
           ng-mouseup="cal.stopAdd()")
 
-          .owner-box( ng-repeat="owner in day.owners",
-            ng-style="{'background-color': owner.color}")
+          .owner-box( ng-repeat="o in day.owners",
+            ng-style="{'background-color': o.owner.color}")
           //pre.pull-left {{day | json}}
           span.pull-right.muted {{day.format("DD/MM")}}
           .text-center.day-editing(ng-mousedown="cal.startAdd(day)",
@@ -56,9 +58,9 @@ section#calendar
 
   #owners
     ul.list-inline.pull-right
-      li(ng-repeat="(k,v) in cal.owners")
-        span.owner-box(ng-style="{'background-color': v}")
-        |{{k}}
+      li(ng-repeat="o in cal.owners")
+        span.owner-box(ng-style="{'background-color': o.color}")
+        |{{o.emails[0].address}}
   .row
     .col-sm-12
       .panel.panel-default
