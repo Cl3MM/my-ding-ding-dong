@@ -15,34 +15,48 @@ moment.fn.toJSON = ->
   o
 
 class Calendar
-  constructor: ($scope, $reactive, $meteor, @Notification)->
+  constructor: ($scope, $reactive, $meteor, @$q, @Notification)->
     $reactive(@).attach $scope
 
     console.group "Calendar Controller"
 
-    @ownerId = Meteor.user()?._id ? 2
-    @date = moment.utc().startOf('d')
+    @ownerId = Meteor.user()?._id
     @weeks = []
     @_weeks = []
     @selections = []
     @removables = []
     @cancelations = []
-    @owners = {}
-    for i in [1..6]
-      @owners["#{i}"] = randomColor()
-
     @bookings = []
-    #@helpers(
-      #reservations = ->
-        #Bookings.find {}
-    #)
-    #@reservations = @helpers.reservations()
 
-    @reservations = []
-    Meteor.subscribe 'bookings',
-      onReady: (subscription)=>
-        @reservations = $meteor.collection Bookings
+    @subscribe 'users'
+    @subscribe 'bookings'
+
+    @date = moment.utc().startOf('d')
+    @helpers(
+      date : moment.utc().startOf('d')
+      owners: -> Meteor.users.find {}
+      reservations: =>
+        start = moment.utc(@date).startOf('month').add(-1,'w')
+        end = moment.utc(@date).endOf('month').add(1,'w')
+        Bookings.find {
+          date: {
+            $lte: end.toDate()
+            $gte:start.toDate()
+          }
+        }, {
+          fields: {'_id':1, date: 1, color: 1, owner: 1}
+        }
+    )
+    @autorun( =>
+      if @reservations[0]
         @display()
+        $scope.$apply()
+    )
+    #Meteor.call 'booking_on', moment(), (err, res)=>
+      #return console.error err if err
+      #console.group "BOOKING ON"
+      #console.log res
+      #console.groupEnd()
 
     labels = moment.weekdays()
     dim = labels.shift()
@@ -82,15 +96,17 @@ class Calendar
     , (d)-> d.valueOf()
     f(@date)
 
+  findResaOn: (day)->
+    Bookings.find {
+        date: day.toDate()
+      }, {
+        fields: {'_id':1, date: 1, color: 1, owner: 1}
+      }
   hazBooking: (day)->
     return [] if @reservations.length is 0
-    f = lodash.memoize (d)=>
-      return @reservations.filter (r)->
-        moment.utc(r.date).format('DDMMYY') is d.format('DDMMYY')
-      .map (r)=>
-        { color: @owners["#{r.owner}"], owner: r.owner, id: r._id }
-    , (d)-> d.valueOf()
-    f(day)
+    @findResaOn(day)
+    .map (r)=>
+      { owner: lodash.find(@owners, (u)-> u._id is r.owner), id: r._id }
 
   cancelEdition: ->
     @editing = false
@@ -110,21 +126,19 @@ class Calendar
 
   display: ->
     @weeks = []
-    today = angular.copy @date
     dates = [
-      moment.utc(today).startOf('month').startOf 'week'
-      moment.utc(today).endOf('month').endOf 'week'
+      moment.utc(@date).startOf('month').startOf 'week'
+      moment.utc(@date).endOf('month').endOf 'week'
     ]
     @range = moment.range(dates)
     weeks = []
 
     @range.by 'days', (day)=>
       obj = angular.copy day
-      obj.unscoped = !day.isSame today, 'month'
+      obj.unscoped = !day.isSame @date, 'month'
       obj.owners = @hazBooking day
       @initDay obj
       obj.booked = lodash.any( @bookings, (b)-> b.format('DDMMYY') is day.format('DDMMYY') )
-      console.log obj if obj.booked
       weeks.push obj
     @_weeks = weeks
     @weeks = lodash.chunk @_weeks, 7
@@ -144,14 +158,27 @@ class Calendar
       isAdding : false
       activeDay : null
 
+    #_bookings = angular.copy @bookings
     @bookings = @_weeks.reduce (ar, w)=>
       if w.adding
         w.adding = false
         w.booked = !w.booked if w.canBook
-      ar.push(w) if w.booked isnt w.original and w.canBook and !w.myPrecious
+      ar.push(w) if w.booked isnt w.original and w.canBook and
+        !w.myPrecious #and !lodash.includes @bookings, (b)-> b.format('DD-MM-YY') is w.format('DD-MM-YY')
       w.isEnd = false
       ar
     , []
+
+    #len = @_weeks.length
+    #_bookings.forEach (b)=>
+      #if @_weeks[0].isAfter b
+        #@bookings.shift b
+      #else if @_weeks[len-1].isBefore b
+        #@bookings.push b
+
+    #if @bookings[0]
+      #@bookings = [].concat @bookings, _bookings
+    #else @bookings = _bookings
 
     @cancelations = @_weeks.reduce (ar, w)=>
       ar.push w if w.booked isnt w.original and w.myPrecious
@@ -207,27 +234,37 @@ class Calendar
     @bookings.forEach (b)=>
       return unless b.canBook
       return if b.booked is b.original
-      @reservations.save( {
-        date: b.toISOString()
+      owner = lodash.find(@owners, (user)=> user._id is @ownerId )
+      Bookings.insert {
+        date: b.toDate()
         owner: @ownerId
         #'_id': b.id
-      }).then (data)=>
+      }, (err, data)=>
+        if err
+          console.error err
+          @Notification.error "Une erreur est survenue lors de l'ajout"
+          return
+
         b.id = data[0]._id
-        b.owners.push {owner: @ownerId, color: @owners[@ownerId], id: b.id }
+        b.owners = [] unless b.owners
+        b.owners.push {owner: owner, id: b.id }
         @initDay b
         @updateDay b
-      .catch (err)=>
-        console.error err
-        @Notification.error "Une erreur est survenue"
+        @Notification.success "Réservations ajoutées !"
+
     @cancelations.forEach (c)=>
-      id = _.find(c.owners, (o)=> o.owner is @ownerId)?.id
+      id = _.find(c.owners, (o)=> o.owner._id is @ownerId)?.id
       return unless id
-      @reservations.remove(id).then (data)=>
+      Bookings.remove id, (err, data)=>
+        if err
+          console.error err
+          @Notification.error "Une erreur est survenue lors de la suppression"
+          return
+
         lodash.remove c.owners, (o)-> o.id is id
         @initDay c
         @updateDay c
-      .catch (err)->
-        console.error err
+        @Notification.success "Réservations supprimées !"
     @bookings = []
     @cancelations = []
     @selections = []
@@ -239,18 +276,13 @@ class Calendar
     day.booked = false
     day.adding = false
     day.isNew = day.owners.length is 0
-    day.myPrecious = lodash.any day.owners, (o)=> o.owner is @ownerId
+    day.myPrecious = lodash.any day.owners, (o)=> o.owner._id is @ownerId
     day.canBook = day.isNew or day.myPrecious
 
   updateDay: (day)=>
     old = lodash.find @_weeks, (w)-> day.format("DDMMYY") is w.format("DDMMYY")
-    console.group "Update #{day}"
-    console.log "old: #{old}"
-    console.log angular.copy old
-    console.log angular.copy day
-    console.groupEnd()
     old = angular.copy day
 
 angular
   .module 'huezNg.common.directives.calendar'
-  .controller 'calendarController', ['$scope', '$reactive', '$meteor', 'Notification', Calendar]
+  .controller 'calendarController', ['$scope', '$reactive', '$meteor', '$q', 'Notification', Calendar]
