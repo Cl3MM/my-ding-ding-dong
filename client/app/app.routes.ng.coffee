@@ -8,15 +8,6 @@ class Routes
       url: '/'
       templateUrl: 'client/bookings/views/index.html'
       controller: 'bookingsController'
-      resolve:
-        currentUser: [ '$q', ($q)->
-          unless Meteor.userId()
-            console.log "User not logged in :("
-            $q.reject 'AUTH_REQUIRED'
-          else
-            console.log "User logged in !!!"
-            return $q.resolve()
-        ]
 
     $urlRouterProvider.otherwise '/'
 
