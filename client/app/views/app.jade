@@ -1,7 +1,22 @@
 head
-  link(href="https://maxcdn.bootstrapcdn.com/bootswatch/latest/slate/bootstrap.min.css", rel="stylesheet")
+  link(href="https://maxcdn.bootstrapcdn.com/bootswatch/latest/simplex/bootstrap.min.css", rel="stylesheet")
   //link(rel="stylesheet", href="angular-ui-notification.min.css")
   base(href="/")
 body(ng-app="huezNg")
   div.container
+    nav.navbar.navbar-default
+      .container-fluid
+        .navbar-header
+          button.navbar-toggle.collapsed(type="button", data-toggle="collapse", data-target="#main-navbar")
+            span.sr-only Toggle navigation
+            span.icon-bar
+            span.icon-bar
+            span.icon-bar
+          a.navbar-brand(href="#")
+            i.fa.fa-home
+            |&nbsp;Huez Ng
+        #main-navbar.collapse.navbar-collapse
+          ul.nav.navbar-nav.navbar-right
+            login-buttons
+
     div(ui-view="")
