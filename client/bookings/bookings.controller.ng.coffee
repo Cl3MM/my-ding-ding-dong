@@ -1,5 +1,9 @@
 class Bookings
-  constructor: ->
+  constructor: ($reactive, $scope)->
+    $reactive(@).attach($scope)
+    console.group "Setting up Booking Controller"
+    console.log @user
+    console.groupEnd()
     @bookings = []
     @mode =
       edit: false
@@ -10,5 +14,5 @@ class Bookings
 
 angular
   .module 'huezNg.bookings'
-  .controller 'bookingsController', [Bookings]
+  .controller 'bookingsController', ['$reactive', '$scope', Bookings]
 
