@@ -1,5 +1,7 @@
 class Init
-  constructor: ($rootScope, $state)->
+  constructor: ($rootScope, $state, $reactive)->
+    #$reactive(@).attach($rootScope)
+
     moment.locale 'fr'
 
     $rootScope.$on '$stateChangeStart', @stateChangeStart
@@ -14,7 +16,8 @@ class Init
         console.log 'Auth required'
         $state.go 'login'
 
-    Meteor.autorun ->
+    ###
+    @autorun ->
       console.group "Autoruning"
       console.log Meteor.user()
       console.groupEnd()
@@ -37,20 +40,23 @@ class Init
         console.log $state.is 'login'
 
         $state.go 'bookings' if $state.is 'login'
+    ###
 
     #Accounts.onLogin ->
       #console.group "Login successful ..."
-      #if $state.is 'login'
+      #console.log $state.name
+      #if $state.name is 'login'
         #if $rootScope.returnToState
           #console.log "redirecting to #{$rootScope.returnToState}"
           #$state.go $rootScope.returnToStateParams
         #else
           #console.log "redirecting to bookings"
           #$state.go('bookings').then (ok)->
-
             #console.log "ok"
           #.catch (err)->
             #console.error "err"
+      #else
+        #$state.go 'bookings'
 
       #console.groupEnd()
 
@@ -95,5 +101,5 @@ class Init
 
 angular
   .module 'huezNg'
-  .run [ '$rootScope', '$state',  Init ]
+  .run [ '$rootScope', '$state', '$reactive', Init ]
 

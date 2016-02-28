@@ -1,7 +1,9 @@
 .row(ng-controller="bookingsController as vm")
-  .col-sm-12
+  .col-sm-12(ng-if="!vm.user")
+    .jumbotron
+      h2.text-center Veuillez vous authentifier
     //pre {{currentUser|json}}
-  .col-sm-12
+  .col-sm-12(ng-if="vm.user")
     calendar
     //(bookings="vm.bookings")
     //-, editing="vm.mode.edit")

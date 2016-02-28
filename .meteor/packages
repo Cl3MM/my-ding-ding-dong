@@ -30,3 +30,5 @@ coffeescript
 rzymek:randomcolor
 kraignos:angular-ui-notification
 carlosbaraza:accounts-ui-bootstrap-3-angular
+angular-meteor-auth
+angularui:angular-ui-bootstrap

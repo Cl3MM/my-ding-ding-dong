@@ -4,6 +4,7 @@ section#calendar
   .row.mg-b-10
     .col-xs-2
       button.btn.btn-sm(type="button", ng-click="cal.prevMonth()",
+        tooltip="PROUT"
         ng-class="{'btn-primary': !cal.editing,\
           'btn-warning':cal.editing}")
         i.fa.fa-chevron-left
@@ -38,14 +39,18 @@ section#calendar
       tr(ng-repeat="week in cal.weeks track by $index")
         td.td-day(ng-repeat="day in week track by day.format('DDMMYY')",
           ng-class="{'day-unscoped': day.unscoped,\
+            warning: (day.booked || day.adding || day.canceled) && day.myPrecious,\
             success: day.adding && day.canBook && !day.myPrecious,\
             danger: day.adding && !day.canBook,\
             info: day.booked,\
-            warning: (day.booked || day.adding) && day.myPrecious }",
+            }",
           ng-mouseenter="cal.adding(day)",
           ng-mouseup="cal.stopAdd()")
 
           .owner-box( ng-repeat="o in day.owners",
+            tooltip="{{o.owner.emails[0].address}}",
+            tooltip-trigger="mouseenter",
+            tooltip-enabled="cal.editing",
             ng-style="{'background-color': o.owner.color}")
           //pre.pull-left {{day | json}}
           span.pull-right.muted {{day.format("DD/MM")}}
@@ -58,7 +63,7 @@ section#calendar
 
   #owners
     ul.list-inline.pull-right
-      li(ng-repeat="o in cal.owners")
+      li(ng-repeat="o in cal.legend")
         span.owner-box(ng-style="{'background-color': o.color}")
         |{{o.emails[0].address}}
   .row

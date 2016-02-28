@@ -1,8 +1,12 @@
 class Bookings
-  constructor: ($reactive, $scope)->
+  constructor: ($reactive, $scope, $auth)->
     $reactive(@).attach($scope)
     console.group "Setting up Booking Controller"
-    console.log @user
+    console.log $auth
+    @helpers({
+      user: -> Meteor.user()
+    })
+    #console.log @user
     console.groupEnd()
     @bookings = []
     @mode =
@@ -14,5 +18,5 @@ class Bookings
 
 angular
   .module 'huezNg.bookings'
-  .controller 'bookingsController', ['$reactive', '$scope', Bookings]
+  .controller 'bookingsController', ['$reactive', '$scope', '$auth', Bookings]
 

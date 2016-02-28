@@ -5,7 +5,7 @@ class Calendar
       restrict: 'E'
       scope : {
         #bookings: '='
-        editing: '='
+        #editing: '='
       }
       templateUrl: "client/common/directives/calendar/views/calendar.html"
       controller: 'calendarController'
